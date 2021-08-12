@@ -1,6 +1,7 @@
 from util.plot_utils import plot_logs
 from pathlib import Path
 from PIL import Image
+from utils import *
 
 
 if __name__ == "__main__":

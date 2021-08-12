@@ -178,3 +178,38 @@ def copy_coco():
       for file in file_lists[file_list_i]:
         filename = file.split("/")[-1]
         shutil.move(file, os.path.join(main_paths[file_list_i], filename))
+
+
+
+def run_worflow(my_image, my_model):
+  # mean-std normalize the input image (batch-size: 1)
+  img = transform(my_image).unsqueeze(0)
+
+  # propagate through the model
+  outputs = my_model(img)
+
+  for threshold in [0.9, 0.7]:
+    
+    probas_to_keep, bboxes_scaled = filter_bboxes_from_outputs(outputs,
+                                                              threshold=threshold)
+
+    plot_finetuned_results(my_image,
+                           probas_to_keep, 
+                           bboxes_scaled)
+
+
+def plot_finetuned_results(pil_img, prob=None, boxes=None):
+    plt.figure(figsize=(16,10))
+    plt.imshow(pil_img)
+    ax = plt.gca()
+    colors = COLORS * 100
+    if prob is not None and boxes is not None:
+      for p, (xmin, ymin, xmax, ymax), c in zip(prob, boxes.tolist(), colors):
+          ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
+                                    fill=False, color=c, linewidth=3))
+          cl = p.argmax()
+          text = f'{finetuned_classes[cl]}: {p[cl]:0.2f}'
+          ax.text(xmin, ymin, text, fontsize=15,
+                  bbox=dict(facecolor='yellow', alpha=0.5))
+    plt.axis('off')
+    plt.show()
