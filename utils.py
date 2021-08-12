@@ -4,6 +4,8 @@ import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
 import pylab
+import convert as via2coco
+
 
 import torch, torchvision
 from PIL import Image
@@ -11,7 +13,11 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as T
 from subprocess import call
 import os
+import glob2
+import shutil
 
+
+pylab.rcParams['figure.figsize'] = (10.0, 8.0)
 
 # for output bounding box post-processing
 def box_cxcywh_to_xyxy(x):
@@ -98,7 +104,7 @@ def coco_convert(data_path):
             categories=categories,
             super_categories=super_categories,
             output_file_name=output_json,
-            first_class_index=first_class_index,
+            first_class_index=0,
         )
 
 def plot_sample_images():
@@ -133,18 +139,19 @@ def plot_sample_images():
     img_name = '%s/%s/%s'%(dataDir, dataType, img['file_name'])
     print('Image name: {}'.format(img_name))
 
-    I = io.imread(img_name)
-
     annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIds)
     anns = coco.loadAnns(annIds)
 
+
+    I = io.imread(img_name)
+    plt.figure()
     plt.imshow(I)
     coco.showAnns(anns, draw_bbox=True)
 
 
 def call_command(arg1, arg2=None):
   if arg2 is not None:
-    call(['mv', '-a', arg1, arg2])
+    call(['mv', arg1, arg2])
   else:
     call(['mkdir', '-p', arg1])
 
@@ -160,9 +167,14 @@ def copy_coco():
     call_command('/content/VIA2COCO/balloon/val/custom_val.json', 
                  '/content/data/custom/annotations/custom_val.json')
     
-    call_command('/content/VIA2COCO/balloon/train/*.jpg', 
-                 '/content/data/custom/train2017/')
 
-    call_command('/content/VIA2COCO/balloon/val/*.jpg', 
-                 '/content/data/custom/val2017/)
-    
+    main_paths = ['/content/data/custom/train2017/', 
+                  '/content/data/custom/val2017/']
+
+    file_lists = [glob2.glob('/content/VIA2COCO/balloon/train/*.jpg'), 
+                  glob2.glob('/content/VIA2COCO/balloon/val/*.jpg')]
+
+    for file_list_i in range(len(main_paths)):
+      for file in file_lists[file_list_i]:
+        filename = file.split("/")[-1]
+        shutil.move(file, os.path.join(main_paths[file_list_i], filename))
