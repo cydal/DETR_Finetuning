@@ -181,7 +181,7 @@ def copy_coco():
 
 
 
-def run_worflow(my_image, my_model):
+def run_worflow(my_image, my_model, transform):
   # mean-std normalize the input image (batch-size: 1)
   img = transform(my_image).unsqueeze(0)
 

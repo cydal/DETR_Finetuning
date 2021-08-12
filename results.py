@@ -2,9 +2,17 @@ from util.plot_utils import plot_logs
 from pathlib import Path
 from PIL import Image
 from utils import *
+import torchvision.transforms as T
 
 
 if __name__ == "__main__":
+
+    # standard PyTorch mean-std input image normalization
+    transform = T.Compose([
+        T.Resize(800),
+        T.ToTensor(),
+        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
 
     log_directory = [Path('outputs/')]
 
@@ -57,7 +65,7 @@ if __name__ == "__main__":
     for img in img_names:
 
         im = Image.open(img)
-        run_worflow(im, model)
+        run_worflow(im, model, transform)
 
 
  
