@@ -47,7 +47,7 @@ if __name__ == "__main__":
     model = torch.hub.load('facebookresearch/detr',
                         'detr_resnet50',
                         pretrained=False,
-                        num_classes=num_classes)
+                        num_classes=1)
 
     checkpoint = torch.load('outputs/checkpoint.pth',
                             map_location='cpu')
