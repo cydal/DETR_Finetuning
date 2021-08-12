@@ -33,7 +33,7 @@ def rescale_bboxes(out_bbox, size):
     return b
 
 
-def filter_bboxes_from_outputs(outputs,
+def filter_bboxes_from_outputs(im, outputs,
                                threshold=0.7):
   
   # keep only predictions with confidence above threshold
@@ -190,7 +190,7 @@ def run_worflow(my_image, my_model, transform):
 
   for threshold in [0.9, 0.7]:
     
-    probas_to_keep, bboxes_scaled = filter_bboxes_from_outputs(outputs,
+    probas_to_keep, bboxes_scaled = filter_bboxes_from_outputs(img, outputs,
                                                               threshold=threshold)
 
     plot_finetuned_results(my_image,
