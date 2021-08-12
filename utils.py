@@ -19,36 +19,6 @@ import shutil
 
 pylab.rcParams['figure.figsize'] = (10.0, 8.0)
 
-# for output bounding box post-processing
-def box_cxcywh_to_xyxy(x):
-    x_c, y_c, w, h = x.unbind(1)
-    b = [(x_c - 0.5 * w), (y_c - 0.5 * h),
-         (x_c + 0.5 * w), (y_c + 0.5 * h)]
-    return torch.stack(b, dim=1)
-
-def rescale_bboxes(out_bbox, size):
-    img_w, img_h = size
-    b = box_cxcywh_to_xyxy(out_bbox)
-    b = b * torch.tensor([img_w, img_h, img_w, img_h], dtype=torch.float32)
-    return b
-
-
-def filter_bboxes_from_outputs(im, outputs,
-                               threshold=0.7):
-  
-  # keep only predictions with confidence above threshold
-  probas = outputs['pred_logits'].softmax(-1)[0, :, :-1]
-  keep = probas.max(-1).values > threshold
-
-  probas_to_keep = probas[keep]
-
-  # convert boxes from [0; 1] to image scales
-  bboxes_scaled = rescale_bboxes(outputs['pred_boxes'][0, keep], im.size)
-  
-  return probas_to_keep, bboxes_scaled
-
-
-
 def plot_results(pil_img, prob=None, boxes=None):
     plt.figure(figsize=(16,10))
     plt.imshow(pil_img)
@@ -181,35 +151,3 @@ def copy_coco():
 
 
 
-def run_worflow(my_image, my_model, transform):
-  # mean-std normalize the input image (batch-size: 1)
-  img = transform(my_image).unsqueeze(0)
-
-  # propagate through the model
-  outputs = my_model(img)
-
-  for threshold in [0.9, 0.7]:
-    
-    probas_to_keep, bboxes_scaled = filter_bboxes_from_outputs(img, outputs,
-                                                              threshold=threshold)
-
-    plot_finetuned_results(my_image,
-                           probas_to_keep, 
-                           bboxes_scaled)
-
-
-def plot_finetuned_results(pil_img, prob=None, boxes=None):
-    plt.figure(figsize=(16,10))
-    plt.imshow(pil_img)
-    ax = plt.gca()
-    colors = COLORS * 100
-    if prob is not None and boxes is not None:
-      for p, (xmin, ymin, xmax, ymax), c in zip(prob, boxes.tolist(), colors):
-          ax.add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin,
-                                    fill=False, color=c, linewidth=3))
-          cl = p.argmax()
-          text = f'{finetuned_classes[cl]}: {p[cl]:0.2f}'
-          ax.text(xmin, ymin, text, fontsize=15,
-                  bbox=dict(facecolor='yellow', alpha=0.5))
-    plt.axis('off')
-    plt.show()
